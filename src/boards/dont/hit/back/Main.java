@@ -29,17 +29,16 @@ import org.anddev.andengine.ui.activity.BaseGameActivity;
 
 import android.widget.Toast;
 
-public class Main extends BaseGameActivity implements IOnSceneTouchListener{
+public class Main extends BaseGameActivity implements IOnSceneTouchListener
+{
 
 	private static final int CAMERA_WIDTH = 480;
 	private static final int CAMERA_HEIGHT = 720;
 
-	private static final float DEMO_VELOCITY_X = 200.0f;
-	private static final float DEMO_VELOCITY_Y = 300.0f;
 	private static final long CHANGE_FREQUENCY = 200l;
 	private static final int BOTTOM_OF_BAR = 600;
 	private static final int BAR_WIDTH = 150;
-	private static final int BAR_HEIGHT =16;
+	private static final int BAR_HEIGHT = 16;
 	private static final float OFF_SCREEN_X_Y = 1000f;
 	private Camera mCamera;
 
@@ -59,18 +58,21 @@ public class Main extends BaseGameActivity implements IOnSceneTouchListener{
 	private TextureRegion purpleBrickTextureRegion;
 	private TextureRegion yellowBrickTextureRegion;
 	private TextureRegion redBrickTextureRegion;
+	private List<TextureRegion> textureRegions = new ArrayList<TextureRegion>();
 	private List<Sprite> bricks = new ArrayList<Sprite>();
 	private Sprite bar;
 	private boolean ballOffScreen;
 
 	@Override
-	public Engine onLoadEngine() {
+	public Engine onLoadEngine()
+	{
 		this.mCamera = new Camera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
 		return new Engine(new EngineOptions(true, ScreenOrientation.PORTRAIT, new RatioResolutionPolicy(CAMERA_WIDTH, CAMERA_HEIGHT), this.mCamera));
 	}
 
 	@Override
-	public void onLoadResources() {
+	public void onLoadResources()
+	{
 		this.mTexture = new Texture(64, 16, TextureOptions.BILINEAR_PREMULTIPLYALPHA);
 		this.barTexture = new Texture(256, BAR_HEIGHT, TextureOptions.BILINEAR_PREMULTIPLYALPHA);
 		this.whiteBrickTexture = new Texture(128, 16, TextureOptions.BILINEAR_PREMULTIPLYALPHA);
@@ -79,181 +81,196 @@ public class Main extends BaseGameActivity implements IOnSceneTouchListener{
 		this.purpleBrickTexture = new Texture(128, 16, TextureOptions.BILINEAR_PREMULTIPLYALPHA);
 		this.yellowBrickTexture = new Texture(128, 16, TextureOptions.BILINEAR_PREMULTIPLYALPHA);
 		this.redBrickTexture = new Texture(128, 16, TextureOptions.BILINEAR_PREMULTIPLYALPHA);
-		this.ballTextureRegion = TextureRegionFactory.createTiledFromAsset(this.mTexture, this, "gfx/ball.png", 0, 0, 4, 1);
-		this.barTextureRegion = TextureRegionFactory.createFromAsset(barTexture, this, "gfx/bar.png", 0, 0);
-		this.whiteBrickTextureRegion = TextureRegionFactory.createFromAsset(whiteBrickTexture, this, "gfx/white.png", 0, 0);
-		this.greenBrickTextureRegion = TextureRegionFactory.createFromAsset(greenBrickTexture, this, "gfx/green.png", 0, 0);
-		this.blueBrickTextureRegion = TextureRegionFactory.createFromAsset(blueBrickTexture, this, "gfx/blue.png", 0, 0);
-		this.purpleBrickTextureRegion = TextureRegionFactory.createFromAsset(purpleBrickTexture, this, "gfx/purple.png", 0, 0);
-		this.yellowBrickTextureRegion = TextureRegionFactory.createFromAsset(yellowBrickTexture, this, "gfx/yellow.png", 0, 0);
-		this.redBrickTextureRegion = TextureRegionFactory.createFromAsset(redBrickTexture, this, "gfx/red.png", 0, 0);
+		this.ballTextureRegion = TextureRegionFactory.createTiledFromAsset( this.mTexture, this, "gfx/ball.png", 0, 0, 4, 1);
+		this.barTextureRegion = TextureRegionFactory.createFromAsset( barTexture, this, "gfx/bar.png", 0, 0);
+		this.whiteBrickTextureRegion = TextureRegionFactory.createFromAsset( whiteBrickTexture, this, "gfx/white.png", 0, 0);
+		this.greenBrickTextureRegion = TextureRegionFactory.createFromAsset( greenBrickTexture, this, "gfx/green.png", 0, 0);
+		this.blueBrickTextureRegion = TextureRegionFactory.createFromAsset( blueBrickTexture, this, "gfx/blue.png", 0, 0);
+		this.purpleBrickTextureRegion = TextureRegionFactory.createFromAsset( purpleBrickTexture, this, "gfx/purple.png", 0, 0);
+		this.yellowBrickTextureRegion = TextureRegionFactory.createFromAsset( yellowBrickTexture, this, "gfx/yellow.png", 0, 0);
+		this.redBrickTextureRegion = TextureRegionFactory.createFromAsset( redBrickTexture, this, "gfx/red.png", 0, 0);
+		addTextureRegionsToCollection();
 		this.mEngine.getTextureManager().loadTextures(this.mTexture, barTexture, whiteBrickTexture, greenBrickTexture, blueBrickTexture, purpleBrickTexture, yellowBrickTexture, redBrickTexture);
 	}
 
+	private void addTextureRegionsToCollection()
+	{
+		textureRegions.add(whiteBrickTextureRegion);
+		textureRegions.add(greenBrickTextureRegion);
+		textureRegions.add(blueBrickTextureRegion);
+		textureRegions.add(purpleBrickTextureRegion);
+		textureRegions.add(yellowBrickTextureRegion);
+		textureRegions.add(redBrickTextureRegion);
+	}
+
 	@Override
-	public Scene onLoadScene() {
+	public Scene onLoadScene()
+	{
 		this.mEngine.registerUpdateHandler(new FPSLogger());
 
 		final Scene scene = new Scene(1);
 		scene.setBackground(new ColorBackground(0.09804f, 0.6274f, 0.8784f));
 
-		final int centerX = (CAMERA_WIDTH - this.ballTextureRegion.getWidth()) / 2;
-		final int centerY = (CAMERA_HEIGHT - this.ballTextureRegion.getHeight()) / 2;
-		final Ball ball = new Ball(centerX, centerY, this.ballTextureRegion, bricks);
+		int BAR_X = CAMERA_WIDTH / 2 - BAR_WIDTH / 2;
+		final Ball ball = new Ball(BAR_X, BOTTOM_OF_BAR - 16, this.ballTextureRegion, bricks);
 		ball.animate(CHANGE_FREQUENCY);
-		bar = new Sprite(CAMERA_WIDTH / 2 - BAR_WIDTH / 2, BOTTOM_OF_BAR, barTextureRegion){
-			private final float[] VELOCITIES_Y = new float[]{300f, 280f, 260f, 240f, 220f, 200f, 250f};
-			private final float[] VELOCITIES_X = new float[]{300f, 280f, 260f, 240f, 220f, 200f, 270f};
-			
+		bar = new Sprite(BAR_X, BOTTOM_OF_BAR, barTextureRegion)
+		{
+			private final float[] VELOCITIES_Y = new float[] { 300f, 280f, 260f, 240f, 220f, 200f, 250f };
+			private final float[] VELOCITIES_X = new float[] { 300f, 280f, 260f, 240f, 220f, 200f, 270f };
+
 			@Override
 			protected void onManagedUpdate(float pSecondsElapsed)
 			{
 				float[] velocities = Main.this.getVelocities(VELOCITIES_X, VELOCITIES_Y);
-				if(this.collidesWith(ball))
+				if (this.collidesWith(ball))
 				{
-					if(ball.getX() > this.getX() + BAR_WIDTH / 2)
+					if (ball.getX() > this.getX() + BAR_WIDTH / 2)
 					{
 						ball.getmPhysicsHandler().setVelocity(velocities[0], -velocities[1]);
-					}
-					else
+					} else
 					{
 						ball.getmPhysicsHandler().setVelocity(-velocities[0], -velocities[1]);
 					}
 				}
 				super.onManagedUpdate(pSecondsElapsed);
-			} };
+			}
+		};
 		IEntity lastChild = scene.getLastChild();
 		lastChild.attachChild(ball);
 		lastChild.attachChild(bar);
 		createBricks(lastChild);
 		scene.setOnSceneTouchListener(this);
-		TimerHandler pUpdateHandler = new TimerHandler(0.1f, true, new ITimerCallback()
-		{
-			private boolean haveShownSuccessfulMessage;
-			private boolean haveShownFailureMessage;
-			@Override
-			public void onTimePassed(TimerHandler pTimerHandler)
-			{
-				runOnUiThread(new Runnable()
+		TimerHandler pUpdateHandler = new TimerHandler(0.1f, true,
+				new ITimerCallback()
 				{
-					
+					private boolean haveShownSuccessfulMessage;
+					private boolean haveShownFailureMessage;
+
 					@Override
-					public void run()
+					public void onTimePassed(TimerHandler pTimerHandler)
 					{
-						if(ballOffScreen)
+						runOnUiThread(new Runnable()
 						{
-							if(!haveShownFailureMessage)
+
+							@Override
+							public void run()
 							{
-								Toast.makeText(Main.this, "You lose.", Toast.LENGTH_SHORT).show();
-								haveShownFailureMessage = true;
-							}
-						}
-						else
-						{
-							if(allBricksRemoved())
-							{
-								ball.mPhysicsHandler.setVelocity(0f, 0f);
-								if(!haveShownSuccessfulMessage)
+								if (ballOffScreen)
 								{
-									Toast.makeText(Main.this, "Congralulations, you won.", Toast.LENGTH_SHORT).show();
-									haveShownSuccessfulMessage = true;
+									if (!haveShownFailureMessage)
+									{
+										Toast.makeText(Main.this, "You lose.", Toast.LENGTH_SHORT).show();
+										haveShownFailureMessage = true;
+									}
+								} else
+								{
+									if (allBricksRemoved())
+									{
+										ball.mPhysicsHandler .setVelocity(0f, 0f);
+										if (!haveShownSuccessfulMessage)
+										{
+											Toast.makeText( Main.this, "Congralulations, you won.", Toast.LENGTH_SHORT).show();
+											haveShownSuccessfulMessage = true;
+										}
+									}
 								}
 							}
-						}
-					}
 
-					private boolean allBricksRemoved()
-					{
-						for(Sprite brick : Main.this.bricks)
-						{
-							if(brick.getX() != Main.OFF_SCREEN_X_Y)
+							private boolean allBricksRemoved()
 							{
-								return false;
+								for (Sprite brick : Main.this.bricks)
+								{
+									if (brick.getX() != Main.OFF_SCREEN_X_Y)
+									{
+										return false;
+									}
+								}
+								return true;
 							}
-						}
-						return true;
+						});
 					}
 				});
-			}
-		});
 		scene.registerUpdateHandler(pUpdateHandler);
 		return scene;
 	}
 
 	private void createBricks(IEntity lastChild)
 	{
-		Sprite whiteBrick = new Sprite(100, 100, whiteBrickTextureRegion);
-		float height = whiteBrick.getHeight();
-		Sprite greenBrick = new Sprite(100, 100 + height, greenBrickTextureRegion);
-		Sprite blueBrick = new Sprite(100, 100 + height * 2, blueBrickTextureRegion);
-		Sprite purpleBrick = new Sprite(100, 100 + height * 3, purpleBrickTextureRegion);
-		Sprite yellowBrick = new Sprite(100, 100 + height * 4, yellowBrickTextureRegion);
-		Sprite redBrick = new Sprite(100, 100 + height * 5, redBrickTextureRegion);
-		lastChild.attachChild(whiteBrick);
-		lastChild.attachChild(greenBrick);
-		lastChild.attachChild(blueBrick);
-		lastChild.attachChild(purpleBrick);
-		lastChild.attachChild(yellowBrick);
-		lastChild.attachChild(redBrick);
-		bricks.add(whiteBrick);
-		bricks.add(greenBrick);
-		bricks.add(blueBrick);
-		bricks.add(purpleBrick);
-		bricks.add(yellowBrick);
-		bricks.add(redBrick);
+		for (int i = 1; i < 4; i++)
+		{
+			int j = 0;
+			for (int m = 0; m < 2; m++)
+			{
+				for (TextureRegion textureRegion : textureRegions)
+				{
+					Sprite brick = null;
+					if (i == 0)
+					{
+						brick = new Sprite(1 * 100, 100 + 16 * j, textureRegion);
+					} else
+					{
+						brick = new Sprite(i * 100, 100 + 16 * j, textureRegion.clone());
+					}
+					bricks.add(brick);
+					lastChild.attachChild(brick);
+					j++;
+				}
+			}
+		}
 	}
 
 	@Override
-	public void onLoadComplete() {
+	public void onLoadComplete()
+	{
 
 	}
 
-	private class Ball extends AnimatedSprite {
+	private class Ball extends AnimatedSprite
+	{
 		private final PhysicsHandler mPhysicsHandler;
-		private final float[] VELOCITIES_Y = new float[]{300f, 280f, 260f, 240f, 220f, 200f, 210f};
-		private final float[] VELOCITIES_X = new float[]{200f, 220f, 240f, 260f, 280f, 300f, 230f};
+		private final float[] VELOCITIES_Y = new float[] { 300f, 280f, 260f, 240f, 220f, 200f, 210f };
+		private final float[] VELOCITIES_X = new float[] { 200f, 220f, 240f, 260f, 280f, 300f, 230f };
 		private int currentIndex;
 		private List<Sprite> bricks;
-		
-		public Ball(final float pX, final float pY, final TiledTextureRegion pTextureRegion, List<Sprite> bricks) {
+
+		public Ball(final float pX, final float pY, final TiledTextureRegion pTextureRegion, List<Sprite> bricks)
+		{
 			super(pX, pY, pTextureRegion);
 			this.bricks = bricks;
 			this.mPhysicsHandler = new PhysicsHandler(this);
-			mPhysicsHandler.setVelocity(DEMO_VELOCITY_X, DEMO_VELOCITY_Y);		
 			this.registerUpdateHandler(this.mPhysicsHandler);
 		}
 
 		@Override
-		protected void onManagedUpdate(final float pSecondsElapsed) {
+		protected void onManagedUpdate(final float pSecondsElapsed)
+		{
 			boolean collidesWithBrick = false;
-			for(int i = 0; i < bricks.size(); i++)
+			for (int i = 0; i < bricks.size(); i++)
 			{
 				Sprite brick = bricks.get(i);
-				if(collidesWith(brick))
+				if (collidesWith(brick))
 				{
 					float brickCenterX = brick.getWidth() / 2 + brick.getX();
 					float brickCenterY = brick.getHeight() / 2 + brick.getY();
 					float ballCenterX = getX() + getWidth() / 2;
 					float ballCenterY = getY() + getHeight() / 2;
 					float[] velocities = Main.this.getVelocities(VELOCITIES_X, VELOCITIES_Y);
-					if(ballCenterX > brickCenterX)
+					if (ballCenterX > brickCenterX)
 					{
-						if(ballCenterY > brickCenterY)
+						if (ballCenterY > brickCenterY)
 						{
 							mPhysicsHandler.setVelocity(velocities[0], -velocities[1]);
-						}
-						else
+						} else
 						{
 							mPhysicsHandler.setVelocity(velocities[0], velocities[1]);
 						}
-					}
-					else
+					} else
 					{
-						if(ballCenterY > brickCenterY)
+						if (ballCenterY > brickCenterY)
 						{
 							mPhysicsHandler.setVelocity(-velocities[0], velocities[1]);
-						}
-						else
+						} else
 						{
 							mPhysicsHandler.setVelocity(-velocities[0], -velocities[1]);
 						}
@@ -263,7 +280,7 @@ public class Main extends BaseGameActivity implements IOnSceneTouchListener{
 					collidesWithBrick = true;
 				}
 			}
-			if(!collidesWithBrick)
+			if (!collidesWithBrick)
 			{
 				boundaryCheck();
 			}
@@ -273,16 +290,21 @@ public class Main extends BaseGameActivity implements IOnSceneTouchListener{
 		private void boundaryCheck()
 		{
 			currentIndex = currentIndex % VELOCITIES_Y.length;
-			if(this.mX < 0) {
+			if (this.mX < 0)
+			{
 				this.mPhysicsHandler.setVelocityX(VELOCITIES_X[currentIndex]);
-			} else if(this.mX + this.getWidth() > CAMERA_WIDTH) {
+			} 
+			else if (this.mX + this.getWidth() > CAMERA_WIDTH)
+			{
 				this.mPhysicsHandler.setVelocityX(-VELOCITIES_X[currentIndex]);
 			}
 
-			if(this.mY < 0) {
+			if (this.mY < 0)
+			{
 				this.mPhysicsHandler.setVelocityY(VELOCITIES_Y[currentIndex]);
-			} else if(this.mY + this.getHeight() > CAMERA_HEIGHT) {
-//				this.mPhysicsHandler.setVelocityY(-VELOCITIES_Y[currentIndex]);
+			} 
+			else if (this.mY + this.getHeight() > CAMERA_HEIGHT)
+			{
 				ballOffScreen = true;
 			}
 			currentIndex++;
@@ -292,22 +314,22 @@ public class Main extends BaseGameActivity implements IOnSceneTouchListener{
 		{
 			return mPhysicsHandler;
 		}
-		
+
 	}
 
 	@Override
 	public boolean onSceneTouchEvent(Scene pScene, TouchEvent pSceneTouchEvent)
 	{
-		if(pSceneTouchEvent.getAction() == TouchEvent.ACTION_DOWN)
+		if (pSceneTouchEvent.getAction() == TouchEvent.ACTION_DOWN)
 		{
 			float x = pSceneTouchEvent.getX();
 			final int HALF_LENGTH = BAR_WIDTH / 2;
 			float targetX = x - HALF_LENGTH;
-			if(targetX < 0)
+			if (targetX < 0)
 			{
 				targetX = 0;
 			}
-			if(x + HALF_LENGTH >= CAMERA_WIDTH)
+			if (x + HALF_LENGTH >= CAMERA_WIDTH)
 			{
 				targetX = CAMERA_WIDTH - BAR_WIDTH;
 			}
@@ -316,13 +338,13 @@ public class Main extends BaseGameActivity implements IOnSceneTouchListener{
 		}
 		return false;
 	}
-	
+
 	public float[] getVelocities(float[] velocitiesX, float[] velocitiesY)
 	{
 		Random generator = new Random();
 		int currentIndexX = generator.nextInt(velocitiesX.length);
 		int currentIndexY = generator.nextInt(velocitiesY.length);
-		return new float[]{velocitiesX[currentIndexX], velocitiesY[currentIndexY]};
+		return new float[]{ velocitiesX[currentIndexX], velocitiesY[currentIndexY] };
 	}
-	
+
 }
